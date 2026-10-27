@@ -1,0 +1,6 @@
+# Cloudflare Pages headers. The sha256 is the inline importmap in index.html: recompute it if that block changes.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-pvMXL2zpR9UNe4LDk2lNlu6AY+ul37yVgAb2XeYSxhs=' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

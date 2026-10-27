@@ -115,7 +115,7 @@ function show(next) {
 function start() {
   unlock();
   game = createGame(innerWidth / innerHeight);
-  game.god = god;
+  game.god = game.tested = god;
   fit();
   hud.reset();
   ui.vignette.className = 'vignette';
@@ -138,7 +138,7 @@ function resume() {
 
 function gameOver() {
   const score = Math.floor(game.score);
-  const isBest = score > best;
+  const isBest = score > best && !game.tested; // a run that used god mode never sets the best
   if (isBest) {
     best = score;
     store.set('raktabija.best', String(best));
@@ -298,6 +298,7 @@ addEventListener('keydown', (e) => {
   }
   if (k === 'q' && state === 'play') {
     god = game.god = !god;
+    game.tested ||= god;
     ui.god.hidden = !god;
     banner(god ? 'God mode' : 'Mortal again', god ? 'Testing: chappals pass through' : 'Testing off');
     return;
