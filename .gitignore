@@ -1,0 +1,7 @@
+# old prototype, local tooling and notes: never published
+legacy/
+AGENTS.md
+.hallmark/
+node_modules/
+.DS_Store
+Thumbs.db

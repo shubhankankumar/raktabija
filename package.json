@@ -1,0 +1,11 @@
+{
+  "name": "raktabija",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A cockroach dodging chappals. Graze them to grow your swarm.",
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes serve@14.2.4 -l 8080 .",
+    "test": "node --test"
+  }
+}

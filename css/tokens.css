@@ -1,0 +1,33 @@
+:root {
+  color-scheme: dark;
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.25rem; --text-xl: 1.5625rem; --text-2xl: 1.953rem; --text-3xl: 2.441rem;
+  --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.75rem); --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+  --text-section: clamp(2rem, 2.5vw + 1rem, 3.5rem); --text-title: clamp(1.25rem, 0.75vw + 0.875rem, 1.625rem); --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --color-error: oklch(52% 0.19 27); --color-success: oklch(50% 0.12 150);
+  --container: 1440px; --gutter: 64px; --gap-columns: 32px; --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+
+  /* night battlefield: worn stone, bone-white type, one war red */
+  --color-paper: oklch(16% 0.01 50); --color-paper-2: oklch(21% 0.012 50); --color-paper-3: oklch(26% 0.014 50);
+  --color-ink: oklch(94% 0.012 80); --color-ink-2: oklch(84% 0.018 78); --color-muted: oklch(70% 0.02 72);
+  --color-rule: oklch(40% 0.015 60); --color-rule-2: oklch(30% 0.012 55);
+  --color-accent: oklch(55% 0.2 28); --color-accent-ink: oklch(97% 0.01 80); --color-focus: oklch(82% 0.13 80);
+  --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --radius-card: 2px; --radius-pill: 999px; --rule-hair: 1px;
+  --shadow-card: 0 1px 0 oklch(0% 0 0 / 0.4), 0 8px 24px oklch(0% 0 0 / 0.45);
+  --shadow-sheet: 0 20px 60px oklch(0% 0 0 / 0.6);
+  --tracking-display: 0.005em; --display-weight: 900;
+
+  /* the canvas reads these */
+  --ground: oklch(88% 0.012 80); --cloud: oklch(80% 0.016 70); --vein: oklch(58% 0.02 60); --seam: oklch(30% 0.02 55);
+  --wall: oklch(34% 0.025 60);
+  --dim: oklch(22% 0.02 50 / 0.55); --shadow: oklch(12% 0.02 45); --gloss: oklch(99% 0.005 85);
+  --roach-shell: oklch(40% 0.1 42); --roach-shell-dark: oklch(19% 0.05 38); --roach-shell-light: oklch(58% 0.13 52);
+  --roach-margin: oklch(70% 0.1 72); --roach-leg: oklch(33% 0.07 42); --roach-nymph: oklch(25% 0.04 40);
+  --chappal-foot: oklch(95% 0.008 90); --chappal-foot-shade: oklch(86% 0.012 85); --chappal-wear: oklch(55% 0.035 65);
+  --chappal-rim: oklch(52% 0.15 255); --chappal-strap: oklch(57% 0.17 255); --chappal-strap-dark: oklch(34% 0.12 258);
+  --color-blood: oklch(42% 0.17 27); --color-dust: oklch(52% 0.03 65); --color-alert: oklch(62% 0.22 28);
+}
