@@ -1,7 +1,7 @@
 // three.js view of the simulation. Reads game state, never writes it.
 // Colours come from the CSS tokens (readPalette in main.js); models are built from primitives, no assets.
 import * as THREE from 'three';
-import { DROP_HEIGHT, CHAPPAL_LEN, MAX_PARTICLES, MAX_SWARM, ROACH_HEIGHT } from './config.js';
+import { DROP_HEIGHT, CHAPPAL_LEN, FADE_TIME, MAX_PARTICLES, MAX_SWARM, ROACH_HEIGHT } from './config.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const STRIDE = 0.22; // roach body-lengths per leg cycle, in world units
@@ -86,7 +86,12 @@ export function createRenderer(canvas, pal) {
   scene.add(splat);
 
   const pool = (list, make) => (i) => list[i] || (list[i] = make());
-  const chappalAt = pool(chappals, () => { const c = chappalModel.clone(); scene.add(c); return c; });
+  const chappalAt = pool(chappals, () => {
+    const c = chappalModel.clone();
+    const own = (m) => Object.assign(m.clone(), { transparent: true });
+    c.traverse((o) => { if (o.isMesh) o.material = Array.isArray(o.material) ? o.material.map(own) : own(o.material); }); // own materials so each can fade
+    scene.add(c); return c;
+  });
   const decalAt = pool(decals, () => {
     const m = new THREE.Mesh(decalGeo, new THREE.MeshBasicMaterial({ color: 0x000000, map: decalTex, transparent: true, depthWrite: false }));
     scene.add(m); return m;
@@ -191,9 +196,11 @@ export function createRenderer(canvas, pal) {
       g.chappals.forEach((c, i) => {
         const m = chappalAt(i);
         m.visible = true;
-        m.scale.setScalar(c.scale);
-        const sink = c.state === 'rest' && c.rest < 0.4 ? (0.4 - c.rest) * 0.25 * c.scale : 0; // sinks away under the floor
-        m.position.set(c.x, c.y - sink, c.z);
+        // vanishing: fades, shrinks and lifts off the floor inside the dust puff, eased so it goes fast at the end
+        const f = c.state === 'rest' ? Math.min(1, Math.max(0, 1 - c.rest / FADE_TIME)) ** 2 : 0;
+        m.scale.setScalar(c.scale * (1 - 0.4 * f));
+        m.position.set(c.x, c.y + 0.15 * f * c.scale, c.z);
+        m.traverse((o) => { if (o.isMesh) { [].concat(o.material).forEach((mm) => { mm.opacity = 1 - f; }); o.castShadow = f < 0.3; } });
         m.rotation.set(0, -c.yaw, c.tilt, 'YXZ');
 
         if (c.state === 'air') {
@@ -322,44 +329,142 @@ function poseRoach(r, x, z, heading, gait, t) {
 
 // ---------- chappal: blue-strap Hawai, toe toward +x, sole on y = 0 ----------
 
+// sole outline in fractions of L: a right foot, heel at -x, big-toe side +y (which becomes -z)
+const SOLE = [
+  [-0.5, 0], [-0.485, 0.05], [-0.44, 0.095], [-0.36, 0.125], [-0.24, 0.13], [-0.1, 0.122], [0.04, 0.14],
+  [0.18, 0.165], [0.32, 0.165], [0.42, 0.14], [0.48, 0.09], [0.5, 0.03], [0.495, -0.03], [0.47, -0.08],
+  [0.42, -0.125], [0.33, -0.16], [0.2, -0.17], [0.05, -0.155], [-0.1, -0.14], [-0.24, -0.13], [-0.36, -0.125],
+  [-0.44, -0.095], [-0.485, -0.05],
+];
+
 function makeChappal(pal) {
-  const L = CHAPPAL_LEN, H = L / 2;
-  // half-width along the sole: round heel, pinched arch, broad toe
-  const width = (u) => L * (0.13 + 0.05 * Math.sin(Math.PI * u) - 0.045 * Math.exp(-((u - 0.45) ** 2) / 0.01) + 0.03 * u);
-  const top = [], bottom = [];
-  for (let i = 0; i <= 24; i++) {
-    const u = i / 24, x = -H + u * L, round = Math.sqrt(Math.max(0, 1 - (2 * u - 1) ** 12));
-    top.push(new THREE.Vector2(x, width(u) * round));
-    bottom.unshift(new THREE.Vector2(x, -width(u) * round));
-  }
-  const shape = new THREE.Shape().setFromPoints([...top, ...bottom]);
-  const thick = 0.1;
-  const geo = new THREE.ExtrudeGeometry(shape, { depth: thick, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 2, curveSegments: 4 });
-  geo.rotateX(-Math.PI / 2); // extrude upward; the shape's y becomes -z
-  geo.translate(0, 0.012, 0);
+  const L = CHAPPAL_LEN;
+  const ring = new THREE.CatmullRomCurve3(SOLE.map(([x, y]) => new THREE.Vector3(x * L, y * L, 0)), true, 'centripetal')
+    .getPoints(120).slice(0, -1).map((p) => new THREE.Vector2(p.x, p.y));
+  const slab = (k, depth, y, bevel) => {
+    const shape = new THREE.Shape(ring.map((p) => p.clone().multiplyScalar(k)));
+    const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2 });
+    geo.rotateX(-Math.PI / 2); // extrude upward; the shape's y becomes -z
+    geo.translate(0, y + bevel, 0);
+    return geo;
+  };
+  // cap UVs are shape coords: fit the sole onto a canvas spanning L by 0.4 L
+  const capTex = (canvas) => {
+    const t = new THREE.CanvasTexture(canvas);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.repeat.set(1 / L, 1 / (0.4 * L)); t.offset.set(0.5, 0.5);
+    t.anisotropy = 8;
+    return t;
+  };
 
-  const footbed = new THREE.MeshStandardMaterial({ color: rgb(pal.foot), roughness: 0.85 });
-  const rim = new THREE.MeshStandardMaterial({ color: rgb(pal.rim), roughness: 0.7 });
-  const strap = new THREE.MeshStandardMaterial({ color: rgb(pal.strap), roughness: 0.55 });
+  const top = capTex(paintFootbed(pal)), tread = capTex(paintTread(pal));
+  const footTop = new THREE.MeshStandardMaterial({ map: top, bumpMap: top, bumpScale: 1.5, roughness: 0.75 });
+  const footSide = new THREE.MeshStandardMaterial({ color: rgb(pal.foot), roughness: 0.6 });
+  const soleCap = new THREE.MeshStandardMaterial({ map: tread, bumpMap: tread, bumpScale: 3, roughness: 0.7 });
+  const sole = new THREE.MeshPhysicalMaterial({ color: rgb(pal.rim), roughness: 0.35, clearcoat: 0.5, clearcoatRoughness: 0.3 });
+  const strap = new THREE.MeshPhysicalMaterial({ color: rgb(pal.strap), roughness: 0.25, clearcoat: 0.8, clearcoatRoughness: 0.15 });
+  const plug = new THREE.MeshStandardMaterial({ color: rgb(pal.strapDark), roughness: 0.4 });
   const group = new THREE.Group();
-  const sole = new THREE.Mesh(geo, [footbed, rim]);
-  sole.castShadow = sole.receiveShadow = true;
-  group.add(sole);
+  const mesh = (geo, mat) => { const m = new THREE.Mesh(geo, mat); m.castShadow = m.receiveShadow = true; group.add(m); return m; };
+  mesh(slab(1, 0.05, 0, 0.006), [soleCap, sole]);              // blue outsole, treaded underneath
+  mesh(slab(0.995, 0.034, 0.06, 0.005), [footTop, footSide]); // thick white footbed, crisp edge
+  const yt = 0.104, xp = 0.33 * L, zp = -0.035 * L, xa = -0.1 * L;
 
-  const y0 = thick + 0.02;
-  for (const s of [-1, 1]) {
+  // toe post between the big and second toe, capped by the knot where both arms meet
+  mesh(new THREE.CylinderGeometry(0.022, 0.026, 0.11, 12).translate(xp, yt + 0.05, zp), plug);
+  const knot = mesh(new THREE.CylinderGeometry(0.06, 0.065, 0.035, 20), strap); // a flat moulded cap, not a ball
+  knot.position.set(xp, yt + 0.105, zp); knot.scale.x = 1.15;
+  for (const zA of [-0.1 * L, 0.115 * L]) {
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(H * 0.55, y0, 0),
-      new THREE.Vector3(H * 0.3, y0 + 0.14, s * 0.07),
-      new THREE.Vector3(H * 0.02, y0 + 0.12, s * 0.17),
-      new THREE.Vector3(-H * 0.12, y0, s * 0.2),
+      new THREE.Vector3(xp, yt + 0.1, zp),
+      new THREE.Vector3(xp - 0.16, yt + 0.15, zp + 0.35 * (zA - zp)),
+      new THREE.Vector3(xa + 0.13, yt + 0.14, 0.88 * zA),
+      new THREE.Vector3(xa + 0.025, yt + 0.06, zA),
+      new THREE.Vector3(xa, yt - 0.015, zA),
     ]);
-    const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 20, 0.035, 6), strap);
-    m.scale.y = 0.7; // straps are flat bands, not ropes
-    m.castShadow = true;
-    group.add(m);
+    mesh(band(curve, 0.12, 0.024, Math.sign(zA)), strap);
+    // the plug where the strap pushes through the sole: a flat oval boss
+    const ear = mesh(new THREE.CylinderGeometry(1, 1, 1, 20), plug);
+    ear.scale.set(0.07, 0.012, 0.045); ear.position.set(xa, yt + 0.004, zA);
   }
   return group;
+}
+
+// flat rubber band swept along a curve: face-up at the toe post, turning to face outward (out = ±1 in z) at the sole
+function band(curve, w, t, out) {
+  const N = 16, S = 48, pos = [], idx = [];
+  const sec = Array.from({ length: N }, (_, j) => {
+    const c = Math.cos(2 * Math.PI * j / N), s = Math.sin(2 * Math.PI * j / N);
+    return [Math.sign(c) * Math.abs(c) ** 0.2 * w / 2, Math.sign(s) * Math.abs(s) ** 0.2 * t / 2]; // near-square corners
+  });
+  const p = new THREE.Vector3(), tan = new THREE.Vector3(), n = new THREE.Vector3(), side = new THREE.Vector3();
+  for (let i = 0; i <= S; i++) {
+    const u = i / S, k = u ** 1.5;
+    curve.getPointAt(u, p); curve.getTangentAt(u, tan);
+    n.set(0, 1 - k, out * k);
+    n.addScaledVector(tan, -n.dot(tan)).normalize();
+    side.crossVectors(tan, n);
+    for (const [a, b] of sec) pos.push(p.x + side.x * a + n.x * b, p.y + side.y * a + n.y * b, p.z + side.z * a + n.z * b);
+  }
+  for (let i = 0; i < S; i++) for (let j = 0; j < N; j++) {
+    const a = i * N + j, b = i * N + (j + 1) % N;
+    idx.push(a, a + N, b, b, a + N, b + N);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+// Cap textures span the sole's length by 0.4 L across; u, v are fractions of L, +v the big-toe side.
+const CAP_W = 1024, CAP_H = 512;
+const capX = (u) => (u + 0.5) * CAP_W, capY = (v) => (0.5 - v / 0.4) * CAP_H;
+function capCanvas() {
+  const c = document.createElement('canvas');
+  c.width = CAP_W; c.height = CAP_H;
+  return [c, c.getContext('2d')];
+}
+function solePath(f, k) {
+  f.beginPath();
+  SOLE.forEach(([u, v], i) => f[i ? 'lineTo' : 'moveTo'](capX(u * k), capY(v * k)));
+  f.closePath();
+}
+
+// footbed top: fine rubber grain, a moulded groove following the edge, and a faint heel and ball imprint
+function paintFootbed(pal) {
+  const [c, f] = capCanvas();
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  f.fillStyle = pal.foot; f.fillRect(0, 0, CAP_W, CAP_H);
+  f.filter = 'blur(18px)'; f.fillStyle = pal.shade; f.globalAlpha = 0.5;
+  for (const [u, v, rx, ry] of [[-0.35, 0, 0.08, 0.075], [0.19, 0, 0.1, 0.11]]) {
+    f.beginPath(); f.ellipse(capX(u), capY(v), rx * CAP_W, ry * CAP_W * 1.25, 0, 0, Math.PI * 2); f.fill();
+  }
+  f.filter = 'none'; f.globalAlpha = 1;
+  f.lineJoin = 'round';
+  f.strokeStyle = pal.shade; f.lineWidth = 6; solePath(f, 0.9); f.stroke();     // groove
+  f.strokeStyle = '#ffffff'; f.lineWidth = 2; solePath(f, 0.906); f.stroke();  // its lit lip
+  f.fillStyle = pal.shade;
+  for (let i = 0; i < 14000; i++) {
+    f.globalAlpha = 0.15 + rnd() * 0.25;
+    f.fillRect(rnd() * CAP_W, rnd() * CAP_H, 1 + rnd() * 2, 1 + rnd() * 2);
+  }
+  f.globalAlpha = 1;
+  return c;
+}
+
+// outsole underside: a grid of raised diamond lugs with dark grooves between them
+function paintTread(pal) {
+  const [c, f] = capCanvas();
+  f.fillStyle = pal.strapDark; f.fillRect(0, 0, CAP_W, CAP_H);
+  f.fillStyle = pal.rim;
+  const s = 26;
+  for (let y = -s; y < CAP_H + s; y += s) for (let x = -s; x < CAP_W + s; x += s) {
+    const cx = x + ((y / s) % 2 ? s / 2 : 0);
+    f.beginPath(); f.moveTo(cx, y - s * 0.42); f.lineTo(cx + s * 0.42, y); f.lineTo(cx, y + s * 0.42); f.lineTo(cx - s * 0.42, y); f.fill();
+  }
+  return c;
 }
 
 // ---------- textures ----------

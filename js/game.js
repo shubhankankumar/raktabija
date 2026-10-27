@@ -2,7 +2,7 @@
 // so it runs under `node --test`. main.js steps it at a fixed rate; update() pushes events
 // ({ type, ... }) that the UI layer turns into sound and screens.
 import {
-  LEVELS, ARENA_D, GRAVITY, DROP_HEIGHT, THROW_TIME, RESTITUTION, FLOOR_FRICTION, REST_TIME,
+  LEVELS, ARENA_D, GRAVITY, DROP_HEIGHT, THROW_TIME, RESTITUTION, FLOOR_FRICTION, REST_TIME, FADE_TIME,
   PLAYER_RADIUS, PLAYER_SPEED, PLAYER_ACCEL, ROACH_HEIGHT, BABY_RADIUS, CHAPPAL_LEN, CHAPPAL_R,
   SLAM_SCALE, SLAM_WARN, MAX_HP, INVULN_TIME, GRAZE_BAND, GRAZE_GAIN, GRAZE_BONUS, METER_MAX,
   MAX_SWARM, MAX_PARTICLES,
@@ -92,17 +92,17 @@ function moveSwarm(g, dt) {
 
 function spawn(g, dt, lv) {
   const ramp = lv.dur === Infinity ? Math.min(g.levelTime / 45, 2) : 0; // the endless wave keeps tightening
+  // one chappal in the air at a time, whatever the wave: a due one waits for the last to land
+  const busy = () => g.chappals.some((c) => c.state === 'air');
   g.volleyTimer -= dt;
-  if (g.volleyTimer <= 0) {
-    g.volleyTimer = Math.max(0.45, lv.every - ramp * 0.2);
-    for (let i = 0, n = lv.count + Math.floor(ramp); i < n; i++) {
-      const kind = lv.kinds[Math.floor(g.rand() * lv.kinds.length)];
-      if (kind === 'throw') spawnThrow(g); else spawnDrop(g, g.rand() < lv.aim);
-    }
+  if (g.volleyTimer <= 0 && !busy()) {
+    g.volleyTimer = Math.max(0.6, lv.every - ramp * 0.15);
+    const kind = lv.kinds[Math.floor(g.rand() * lv.kinds.length)];
+    if (kind === 'throw') spawnThrow(g); else spawnDrop(g, g.rand() < lv.aim);
   }
   if (lv.slam) {
     g.slamTimer -= dt;
-    if (g.slamTimer <= 0) { g.slamTimer = lv.slam; spawnSlam(g); }
+    if (g.slamTimer <= 0 && !busy()) { g.slamTimer = lv.slam; spawnSlam(g); }
   }
 }
 
@@ -164,6 +164,7 @@ function moveChappals(g, dt) {
   for (let i = g.chappals.length - 1; i >= 0; i--) {
     const c = g.chappals[i];
     if (c.state === 'rest') {
+      if (c.rest > FADE_TIME && c.rest - dt <= FADE_TIME) burst(g, c.x, c.z, 'dust', c.kind === 'slam' ? 24 : 12, 1.6 * c.scale); // a puff as it vanishes
       c.rest -= dt;
       if (c.rest <= 0) g.chappals.splice(i, 1);
       continue;

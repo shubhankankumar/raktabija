@@ -33,7 +33,8 @@ function readPalette() {
     paper: v('--color-paper'), wall: v('--wall'),
     ground: v('--ground'), cloud: v('--cloud'), vein: v('--vein'), seam: v('--seam'), gloss: v('--gloss'),
     shell: v('--roach-shell'), shellDark: v('--roach-shell-dark'), margin: v('--roach-margin'), leg: v('--roach-leg'), nymph: v('--roach-nymph'),
-    foot: v('--chappal-foot'), rim: v('--chappal-rim'), strap: v('--chappal-strap'),
+    foot: v('--chappal-foot'), shade: v('--chappal-foot-shade'), wear: v('--chappal-wear'),
+    rim: v('--chappal-rim'), strap: v('--chappal-strap'), strapDark: v('--chappal-strap-dark'),
     blood: v('--color-blood'), dust: v('--color-dust'), alert: v('--color-alert'),
   };
 }
@@ -155,16 +156,16 @@ function drainEvents() {
 const keys = new Set();
 const KEY_DIR = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1] };
 
-// the roach runs only while the mouse button or finger is held: let go and it stops dead
+// mouse/trackpad steers on hover; touch runs only while the finger is down. Lift or leave and it stops dead
 function aim(e) {
-  if (state !== 'play' || !e.buttons) return;
+  if (state !== 'play' || (e.pointerType !== 'mouse' && !e.buttons)) return;
   // on touch, keep the roach above the finger so it stays visible
   const lift = e.pointerType === 'touch' ? 70 : 0;
   game.target = view.pick(e.clientX, e.clientY - lift, game.target || {});
 }
 canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); aim(e); });
 canvas.addEventListener('pointermove', aim);
-for (const t of ['pointerup', 'pointercancel']) canvas.addEventListener(t, () => { game.target = null; });
+for (const t of ['pointerup', 'pointercancel', 'pointerleave']) canvas.addEventListener(t, (e) => { if (e.type !== 'pointerup' || e.pointerType !== 'mouse') game.target = null; });
 
 addEventListener('keydown', (e) => {
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;

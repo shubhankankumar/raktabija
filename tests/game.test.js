@@ -121,6 +121,20 @@ test('levels advance on time and the last one never ends', () => {
   assert.equal(LEVELS.length, 5);
 });
 
+test('never more than one chappal in the air, even in the endless boss wave', () => {
+  const g = createGame(16 / 9, seeded(7));
+  g.god = true;
+  g.level = LEVELS.length - 1;
+  let spawned = 0, seen = new Set();
+  for (let t = 0; t < 120; t += 1 / 120) {
+    update(g, 1 / 120);
+    const air = g.chappals.filter((c) => c.state === 'air');
+    assert.ok(air.length <= 1);
+    for (const c of g.chappals) if (!seen.has(c)) { seen.add(c); spawned++; }
+  }
+  assert.ok(spawned > 60, 'still keeps the pressure on');
+});
+
 test('chappal hitbox follows the sole, not a circle', () => {
   const g = quiet(createGame(16 / 9, seeded()));
   const c = dropOn(g, 0, 0);
