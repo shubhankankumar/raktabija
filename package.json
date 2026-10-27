@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "npx --yes serve@14.2.4 -l 8080 .",
-    "test": "node --test"
+    "test": "node --test",
+    "format": "npx --yes prettier@3.3.3 --write ."
   }
 }

@@ -30,6 +30,7 @@ python -m http.server 8080
 
 ```sh
 npm test               # node --test, no dependencies
+npm run format         # prettier, settings in .prettierrc.json
 ```
 
 ## Layout

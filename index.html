@@ -1,90 +1,131 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Raktabija. One cockroach against every chappal in the house.">
-  <meta name="theme-color" content="#1a1613">
-  <title>Raktabija</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='18' rx='6.5' ry='11' fill='%235a2a14'/%3E%3Cellipse cx='16' cy='9' rx='5' ry='3.5' fill='%23c9a26a'/%3E%3C/svg%3E">
-</head>
-<body>
-  <canvas id="arena" aria-label="Battlefield"></canvas>
-  <div class="vignette" id="vignette" aria-hidden="true"></div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Raktabija. One cockroach against every chappal in the house." />
+    <meta name="theme-color" content="#1a1613" />
+    <title>Raktabija</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Barlow:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='18' rx='6.5' ry='11' fill='%235a2a14'/%3E%3Cellipse cx='16' cy='9' rx='5' ry='3.5' fill='%23c9a26a'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <canvas id="arena" aria-label="Battlefield"></canvas>
+    <div class="vignette" id="vignette" aria-hidden="true"></div>
 
-  <header class="hud" id="hud" hidden>
-    <div class="hud__wave">
-      <span class="hud__label" id="hud-wave">Wave 1 of 5</span>
-      <strong class="hud__name" id="hud-level">First blood</strong>
-      <span class="hud__label hud__god" id="hud-god" hidden>God mode on (Q)</span>
-    </div>
-    <strong class="hud__score num" id="hud-score" aria-label="Score">0</strong>
-    <div class="hud__status">
-      <div class="lives" id="hud-hp" role="meter" aria-label="Lives" aria-valuemin="0" aria-valuemax="3" aria-valuenow="3">
-        <i></i><i></i><i></i>
+    <header class="hud" id="hud" hidden>
+      <div class="hud__wave">
+        <span class="hud__label" id="hud-wave">Wave 1 of 5</span>
+        <strong class="hud__name" id="hud-level">First blood</strong>
+        <span class="hud__label hud__god" id="hud-god" hidden>God mode on (Q)</span>
       </div>
-      <div class="blood" id="hud-meter" role="meter" aria-label="Blood meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
-      <span class="hud__label"><span class="num" id="hud-swarm">0</span> in the swarm</span>
-    </div>
-    <button class="btn btn--ghost hud__pause" id="btn-pause" type="button" aria-label="Pause">
-      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" fill="currentColor"/></svg>
-    </button>
-  </header>
-
-  <div class="banner" id="banner" role="status" hidden><span></span><strong></strong></div>
-
-  <section class="screen screen--menu" id="menu" aria-labelledby="menu-title">
-    <div class="menu">
-      <p class="kicker">A battle on the kitchen floor &middot; 5 waves</p>
-      <h1 id="menu-title">Raktabija</h1>
-      <p class="lead">One cockroach against every chappal in the house. Every drop of its blood rises again.</p>
-      <div class="actions">
-        <button class="btn btn--primary" id="btn-play" type="button">Enter the battle</button>
-        <button class="btn btn--ghost" id="btn-mute" type="button">Sound on</button>
+      <strong class="hud__score num" id="hud-score" aria-label="Score">0</strong>
+      <div class="hud__status">
+        <div
+          class="lives"
+          id="hud-hp"
+          role="meter"
+          aria-label="Lives"
+          aria-valuemin="0"
+          aria-valuemax="3"
+          aria-valuenow="3"
+        >
+          <i></i><i></i><i></i>
+        </div>
+        <div
+          class="blood"
+          id="hud-meter"
+          role="meter"
+          aria-label="Blood meter"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        ></div>
+        <span class="hud__label"><span class="num" id="hud-swarm">0</span> in the swarm</span>
       </div>
-      <dl class="rules">
-        <dt>Move</dt><dd>Point the mouse or hold a finger where to run, or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows</dd>
-        <dt>Dodge</dt><dd>A dark shadow on the floor is where a chappal lands. Red rings are thrown ones.</dd>
-        <dt>Grow</dt><dd>Three near misses fill the blood meter and birth a soldier.</dd>
-        <dt>Pause</dt><dd><kbd>P</kbd> or <kbd>Esc</kbd>, sound <kbd>M</kbd></dd>
-      </dl>
-      <p class="hint">Best score <span class="num" id="menu-best">none yet</span></p>
-    </div>
-  </section>
+      <button class="btn btn--ghost hud__pause" id="btn-pause" type="button" aria-label="Pause">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+          <rect x="3" y="2" width="3.5" height="12" fill="currentColor" />
+          <rect x="9.5" y="2" width="3.5" height="12" fill="currentColor" />
+        </svg>
+      </button>
+    </header>
 
-  <section class="screen" id="pause" aria-labelledby="pause-title" hidden>
-    <div class="panel">
-      <h2 id="pause-title">Ceasefire</h2>
-      <div class="actions">
-        <button class="btn btn--primary" id="btn-resume" type="button">Back to battle</button>
-        <button class="btn btn--ghost" id="btn-quit" type="button">Retreat</button>
+    <div class="banner" id="banner" role="status" hidden><span></span><strong></strong></div>
+
+    <section class="screen screen--menu" id="menu" aria-labelledby="menu-title">
+      <div class="menu">
+        <p class="kicker">A battle on the kitchen floor &middot; 5 waves</p>
+        <h1 id="menu-title">Raktabija</h1>
+        <p class="lead">One cockroach against every chappal in the house. Every drop of its blood rises again.</p>
+        <div class="actions">
+          <button class="btn btn--primary" id="btn-play" type="button">Enter the battle</button>
+          <button class="btn btn--ghost" id="btn-mute" type="button">Sound on</button>
+        </div>
+        <dl class="rules">
+          <dt>Move</dt>
+          <dd>
+            Point the mouse or hold a finger where to run, or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows
+          </dd>
+          <dt>Dodge</dt>
+          <dd>A dark shadow on the floor is where a chappal lands. Red rings are thrown ones.</dd>
+          <dt>Grow</dt>
+          <dd>Three near misses fill the blood meter and birth a soldier.</dd>
+          <dt>Pause</dt>
+          <dd><kbd>P</kbd> or <kbd>Esc</kbd>, sound <kbd>M</kbd></dd>
+        </dl>
+        <p class="hint">Best score <span class="num" id="menu-best">none yet</span></p>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="screen" id="over" aria-labelledby="over-title" hidden>
-    <div class="panel">
-      <h2 id="over-title">Fallen</h2>
-      <p class="score-big num" id="over-score">0</p>
-      <dl class="tally">
-        <dt>Fell in</dt><dd id="over-level"></dd>
-        <dt>Swarm left</dt><dd class="num" id="over-swarm">0</dd>
-        <dt>Best</dt><dd class="num" id="over-best">0</dd>
-      </dl>
-      <div class="actions">
-        <button class="btn btn--primary" id="btn-again" type="button">Rise again</button>
-        <button class="btn btn--ghost" id="btn-menu" type="button">Menu</button>
+    <section class="screen" id="pause" aria-labelledby="pause-title" hidden>
+      <div class="panel">
+        <h2 id="pause-title">Ceasefire</h2>
+        <div class="actions">
+          <button class="btn btn--primary" id="btn-resume" type="button">Back to battle</button>
+          <button class="btn btn--ghost" id="btn-quit" type="button">Retreat</button>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <noscript><p class="noscript">Raktabija needs JavaScript to run.</p></noscript>
+    <section class="screen" id="over" aria-labelledby="over-title" hidden>
+      <div class="panel">
+        <h2 id="over-title">Fallen</h2>
+        <p class="score-big num" id="over-score">0</p>
+        <dl class="tally">
+          <dt>Fell in</dt>
+          <dd id="over-level"></dd>
+          <dt>Swarm left</dt>
+          <dd class="num" id="over-swarm">0</dd>
+          <dt>Best</dt>
+          <dd class="num" id="over-best">0</dd>
+        </dl>
+        <div class="actions">
+          <button class="btn btn--primary" id="btn-again" type="button">Rise again</button>
+          <button class="btn btn--ghost" id="btn-menu" type="button">Menu</button>
+        </div>
+      </div>
+    </section>
 
-  <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
-  <script type="module" src="js/main.js"></script>
-</body>
+    <noscript><p class="noscript">Raktabija needs JavaScript to run.</p></noscript>
+
+    <script type="importmap">
+      {
+        "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" },
+        "integrity": {
+          "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js": "sha384-61S/Nu32S3E5+n+KpCOTb2eRYps6fVKm+9Gz1QBvSePFthb46f063Aa/qe/lykFZ"
+        }
+      }
+    </script>
+    <script type="module" src="js/main.js"></script>
+  </body>
 </html>

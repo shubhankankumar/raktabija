@@ -4,23 +4,40 @@ import { createGame, update, spawnDrop, spawnThrow, spawnSlam, birth, chappalDis
 import { LEVELS, MAX_HP, METER_MAX, PLAYER_SPEED, GRAVITY, DROP_HEIGHT } from '../js/config.js';
 
 // deterministic rng
-const seeded = (s = 1) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
-const quiet = (g) => { g.volleyTimer = Infinity; g.slamTimer = Infinity; return g; };
-const run = (g, secs, dt = 1 / 120) => { for (let t = 0; t < secs; t += dt) update(quiet(g), dt); };
-const dropOn = (g, x, z) => { const c = spawnDrop(g, false); c.x = c.tx = x; c.z = c.tz = z; return c; };
+const seeded =
+  (s = 1) =>
+  () =>
+    (s = (s * 16807) % 2147483647) / 2147483647;
+const quiet = (g) => {
+  g.volleyTimer = Infinity;
+  g.slamTimer = Infinity;
+  return g;
+};
+const run = (g, secs, dt = 1 / 120) => {
+  for (let t = 0; t < secs; t += dt) update(quiet(g), dt);
+};
+const dropOn = (g, x, z) => {
+  const c = spawnDrop(g, false);
+  c.x = c.tx = x;
+  c.z = c.tz = z;
+  return c;
+};
 
 test('score grows over time, faster with a swarm', () => {
   const a = quiet(createGame(16 / 9, seeded()));
   const b = quiet(createGame(16 / 9, seeded()));
-  birth(b); birth(b);
-  run(a, 1); run(b, 1);
+  birth(b);
+  birth(b);
+  run(a, 1);
+  run(b, 1);
   assert.ok(a.score > 9 && a.score < 11);
   assert.ok(b.score > a.score * 1.9);
 });
 
 test('the roach runs at a capped speed, not straight to the cursor', () => {
   const g = quiet(createGame(16 / 9, seeded()));
-  g.player.x = -5; g.player.z = 0;
+  g.player.x = -5;
+  g.player.z = 0;
   g.target = { x: 5, z: 0 };
   run(g, 0.5);
   assert.ok(g.player.x - -5 <= PLAYER_SPEED * 0.5 + 1e-6, 'no teleporting');
@@ -65,7 +82,11 @@ test('god mode: chappals pass through without damage', () => {
 
 test('three hits end the game', () => {
   const g = quiet(createGame(16 / 9, seeded()));
-  for (let i = 0; i < 3; i++) { g.invuln = 0; dropOn(g, g.player.x, g.player.z); run(g, 1.2); }
+  for (let i = 0; i < 3; i++) {
+    g.invuln = 0;
+    dropOn(g, g.player.x, g.player.z);
+    run(g, 1.2);
+  }
   assert.equal(g.over, true);
 });
 
@@ -73,7 +94,8 @@ test('near misses fill the meter and a full meter births a roach', () => {
   const g = quiet(createGame(16 / 9, seeded()));
   for (let i = 0; i < 3; i++) {
     const c = dropOn(g, g.player.x, g.player.z);
-    c.yaw = 0; c.z += g.player.r + c.r + 0.2; // lands just beside, lengthwise
+    c.yaw = 0;
+    c.z += g.player.r + c.r + 0.2; // lands just beside, lengthwise
     run(g, 2);
   }
   assert.equal(g.hp, MAX_HP);
@@ -86,7 +108,10 @@ test('a thrown chappal lands where the roach stood', () => {
   const c = spawnThrow(g);
   g.god = true;
   let landed = null;
-  for (let t = 0; t < 3 && !landed; t += 1 / 120) { update(quiet(g), 1 / 120); if (c.touched) landed = { x: c.x, z: c.z }; }
+  for (let t = 0; t < 3 && !landed; t += 1 / 120) {
+    update(quiet(g), 1 / 120);
+    if (c.touched) landed = { x: c.x, z: c.z };
+  }
   assert.ok(landed);
   assert.ok(Math.hypot(landed.x - g.player.x, landed.z - g.player.z) < 0.3);
 });
@@ -94,7 +119,10 @@ test('a thrown chappal lands where the roach stood', () => {
 test('spent chappals settle and are cleared', () => {
   const g = quiet(createGame(16 / 9, seeded(3)));
   g.god = true;
-  for (let i = 0; i < 10; i++) { spawnThrow(g); spawnDrop(g, false); }
+  for (let i = 0; i < 10; i++) {
+    spawnThrow(g);
+    spawnDrop(g, false);
+  }
   run(g, 6);
   assert.equal(g.chappals.length, 0);
 });
@@ -125,12 +153,17 @@ test('never more than one chappal in the air, even in the endless boss wave', ()
   const g = createGame(16 / 9, seeded(7));
   g.god = true;
   g.level = LEVELS.length - 1;
-  let spawned = 0, seen = new Set();
+  let spawned = 0,
+    seen = new Set();
   for (let t = 0; t < 120; t += 1 / 120) {
     update(g, 1 / 120);
     const air = g.chappals.filter((c) => c.state === 'air');
     assert.ok(air.length <= 1);
-    for (const c of g.chappals) if (!seen.has(c)) { seen.add(c); spawned++; }
+    for (const c of g.chappals)
+      if (!seen.has(c)) {
+        seen.add(c);
+        spawned++;
+      }
   }
   assert.ok(spawned > 60, 'still keeps the pressure on');
 });
