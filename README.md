@@ -42,10 +42,22 @@ css/base.css      reset and base rules
 css/style.css     game screens and HUD
 js/config.js      wave table and tuning numbers
 js/game.js        simulation (pure, no DOM; tested)
-js/render.js      three.js scene (loaded from jsDelivr via an import map)
+js/render.js      three.js scene
+js/vendor/        three.js 0.160.0, cut down to the parts render.js uses (tools/vendor-three.sh)
+css/fonts.css     self-hosted fonts (files in fonts/)
 js/audio.js       synthesised sound effects
 js/main.js        boot, input, loop, screen switching
-tests/            node:test suite for game.js
+tests/            node:test suite for game.js, plus a check that js/vendor has every part render.js uses
+tools/deploy.sh   publish to Cloudflare Pages
 ```
 
-Everything is modelled from three.js primitives (the roach is an American cockroach, the chappal a blue-strap Hawai), so there are no image assets. The simulation steps at a fixed 120 Hz. Every colour lives in `css/tokens.css`. Fonts are Big Shoulders Display and Barlow from Google Fonts, with system fallbacks offline.
+Everything is modelled from three.js primitives (the roach is an American cockroach, the chappal a blue-strap Hawai), so there are no image assets. The simulation steps at a fixed 120 Hz. Every colour lives in `css/tokens.css`. Fonts are Big Shoulders Display and Barlow (SIL Open Font License), served from this site with system fallbacks.
+
+## Deploy
+
+```sh
+sh tools/deploy.sh preview   # private preview URL to check first
+sh tools/deploy.sh           # live: https://raktabija.pages.dev
+```
+
+It runs the tests, then uploads only `index.html`, `_headers`, `css/`, `fonts/` and `js/`. Security headers live in `_headers`. The page loads nothing from other sites, so the CSP is `'self'` only. If you use a new `THREE.*` name in `js/render.js`, run `sh tools/vendor-three.sh` (`npm test` reminds you).
