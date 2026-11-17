@@ -1,6 +1,6 @@
 // three.js view of the simulation. Reads game state, never writes it.
 // Colours come from the CSS tokens (readPalette in main.js); models are built from primitives, no assets.
-import * as THREE from 'three';
+import * as THREE from './vendor/three-0.160.0.min.js'; // tree-shaken copy: rebuild with tools/vendor-three.sh
 import { DROP_HEIGHT, CHAPPAL_LEN, FADE_TIME, MAX_PARTICLES, MAX_SWARM, ROACH_HEIGHT } from './config.js';
 
 const UP = new THREE.Vector3(0, 1, 0);

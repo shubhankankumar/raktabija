@@ -2,8 +2,7 @@
  * hero: title left, the living roach as the product shot right · nav: none · footer: none · imagery: none, everything painted on canvas · signature: the roach itself, glossy and twitching on the menu
  * axes: dark/condensed-display/single-red · posture: committed · contrast: pass · fold: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P3 H4 E3 S4 R3 V3 · weakest: hint line is small, kept to two short sentences */
-@import url('./tokens.css');
-@import url('./base.css');
+/* tokens.css and base.css are linked from index.html so all three download in parallel (an @import here would chain them). */
 
 html,
 body {

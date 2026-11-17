@@ -6,12 +6,13 @@
     <meta name="description" content="Raktabija. One cockroach against every chappal in the house." />
     <meta name="theme-color" content="#1a1613" />
     <title>Raktabija</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Barlow:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Fonts and three.js are served from this site: no third-party requests, nothing to slow the first paint. -->
+    <link rel="preload" href="fonts/big-shoulders-display.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="modulepreload" href="js/vendor/three-0.160.0.min.js" />
+    <link rel="stylesheet" href="css/fonts.css" />
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link
       rel="icon"
@@ -118,14 +119,6 @@
 
     <noscript><p class="noscript">Raktabija needs JavaScript to run.</p></noscript>
 
-    <script type="importmap">
-      {
-        "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" },
-        "integrity": {
-          "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js": "sha384-61S/Nu32S3E5+n+KpCOTb2eRYps6fVKm+9Gz1QBvSePFthb46f063Aa/qe/lykFZ"
-        }
-      }
-    </script>
     <script type="module" src="js/main.js"></script>
   </body>
 </html>
