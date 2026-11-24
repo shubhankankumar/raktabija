@@ -79,7 +79,7 @@ npm test
 
 This runs the simulation tests and a check that the cut-down three.js build still has every piece `render.js` uses. There are no packages to install.
 
-`npm run format` runs Prettier. CI runs the tests on every push to master and every pull request.
+`npm run format` runs Prettier. CI runs the tests on every push to main and every pull request.
 
 ## Deploy
 
