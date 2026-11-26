@@ -5,7 +5,7 @@
 set -e
 cd "$(dirname "$0")/.."
 npm test
-rm -rf .deploy && mkdir .deploy && cp -r index.html _headers css fonts js .deploy/
+rm -rf .deploy && mkdir .deploy && cp -r index.html robots.txt _headers css fonts js .deploy/
 # "main" is the Pages production branch; any other --branch value (e.g. "preview") makes a preview deployment.
 npx --yes wrangler@4.157.0 pages deploy .deploy --project-name raktabija --branch "${1:-main}" --commit-dirty=true
 rm -rf .deploy
